@@ -1,18 +1,26 @@
 from kivymd.app import MDApp
+from kivy.config import Config
+from kivy.uix.screenmanager import ScreenManager, Screen
 from kivymd.uix.screen import MDScreen
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.label import MDLabel
+from kivy.clock import Clock
 from kivymd.uix.textfield import MDTextFieldRect
 from kivymd.uix.button import MDRaisedButton
 from kivy.uix.image import AsyncImage
 
-class BMIBMRCalorieApp(MDApp):
+Config.set('graphics', 'width', '200')  # Adjust the width based on your phone's resolution
+Config.set('graphics', 'height', '200')  # Adjust the height based on your phone's resolution
+Config.set('graphics', 'resizable', '0')
 
-    def change_theme(self):
-        # Change theme colors
-        self.theme_cls.primary_palette = "Green"
-        self.theme_cls.accent_palette = "Orange"
-        self.theme_cls.theme_style = "Light"
+from kivy.core.window import Window
+Window.size = (380, 800)
+class SplashScreen(Screen):
+    pass
+
+class MainScreen(Screen):
+    pass
+class BMIBMRCalorieApp(MDApp):
 
     def calculate_bmr(self, instance):
         try:
@@ -64,11 +72,28 @@ class BMIBMRCalorieApp(MDApp):
         except ValueError:
             self.result.text = "Please enter valid information"
 
-    def build(self):
-        self.change_theme()
-        screen = MDScreen()
+    def change_theme(self):
+        self.theme_cls.primary_palette = "Green"
+        self.theme_cls.accent_palette = "Orange"
+        self.theme_cls.theme_style = "Light"
 
-        background_image = AsyncImage(source='avacrdo.png')
+    def build_splash_screen(self):
+        splash_screen = SplashScreen(name='splash_screen')
+
+        splash_image = AsyncImage(source='sparse.png')
+        splash_image.allow_stretch = True
+        splash_image.keep_ratio = False
+
+        splash_screen.add_widget(splash_image)
+
+        return splash_screen
+
+    def build_main_screen(self):
+        main_screen = MainScreen(name='main_screen')
+
+        background_image = AsyncImage(source='avocado.png')
+        background_image.allow_stretch = True
+        background_image.keep_ratio = False
 
         layout = MDBoxLayout(orientation="vertical", padding="20dp", spacing="20dp")
 
@@ -99,11 +124,28 @@ class BMIBMRCalorieApp(MDApp):
         layout.add_widget(calculate_bmi_button)
         layout.add_widget(calculate_calories_button)
 
-        screen.add_widget(background_image)
+        main_screen.add_widget(background_image)
+        main_screen.add_widget(layout)
 
-        screen.add_widget(layout)
+        return main_screen
 
-        return screen
+    def build(self):
+        self.change_theme()
+        screen_manager = ScreenManager()
+
+        splash_screen = self.build_splash_screen()
+        main_screen = self.build_main_screen()
+
+        screen_manager.add_widget(splash_screen)
+        screen_manager.add_widget(main_screen)
+
+        # Schedule the transition to the main screen after 2 seconds (adjust as needed)
+        Clock.schedule_once(self.show_main_screen, 2)
+
+        return screen_manager
+
+    def show_main_screen(self, dt):
+        self.root.current = 'main_screen'
 
 if __name__ == "__main__":
     BMIBMRCalorieApp().run()
